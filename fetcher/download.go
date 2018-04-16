@@ -12,7 +12,7 @@ import (
 
 func Download(filename string, u string) error {
 	//<-config.RateLimiter
-	log.Printf("fetch url: %s, download filename: %s", u, filename)
+	log.Printf("fetch url: %s, [%s]", u, filename)
 	parse, err := url.Parse(u)
 	if err != nil {
 		panic(err)

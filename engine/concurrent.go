@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"maven-sync/fetcher"
+
+	"github.com/go-redis/redis"
 )
 
 type ConcurrentEngine struct {
@@ -12,6 +14,7 @@ type ConcurrentEngine struct {
 	ItemChan        chan Item
 	ParseResultChan chan ParseResult
 	WorkerCount     int
+	RedisClient     *redis.Client
 }
 
 func (c *ConcurrentEngine) Run(seeds ...Request) {
@@ -47,7 +50,16 @@ func (c *ConcurrentEngine) CreateWorker() {
 			for {
 				select {
 				case item := <-c.ItemChan:
-					fetcher.Download(item.Name, item.Url)
+					if c.RedisClient != nil {
+						val, err := c.RedisClient.Get("maven:" + item.Url).Result()
+						if err == nil && string(val) == item.Name {
+							continue
+						}
+					}
+
+					if err := fetcher.Download(item.Name, item.Url); err == nil && c.RedisClient != nil {
+						c.RedisClient.Set("maven:"+item.Url, item.Name, 0)
+					}
 				case r := <-c.RequestChan:
 					parseResult, err := Work(r)
 					if err != nil {
