@@ -1,4 +1,4 @@
-package downloader
+package fetcher
 
 import (
 	"fmt"
@@ -8,13 +8,11 @@ import (
 	"net/url"
 	"os"
 	"path"
-
-	"maven-sync/config"
 )
 
 func Download(filename string, u string) error {
-	<-config.RateLimiter
-	log.Printf("fetch url: %s [%s]", u, filename)
+	//<-config.RateLimiter
+	log.Printf("fetch url: %s, download filename: %s", u, filename)
 	parse, err := url.Parse(u)
 	if err != nil {
 		panic(err)
@@ -33,7 +31,13 @@ func Download(filename string, u string) error {
 	}
 	defer file.Close()
 
-	resp, err := http.Get(u)
+	// Http GET
+	req, err := http.NewRequest("GET", u, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36")
+	req.Header.Set("HOST", "repo.maven.apache.org")
+	resp, err := (&http.Client{}).Do(req)
+
+	//resp, err := http.Get(u)
 	if err != nil {
 		panic(err)
 	}
@@ -48,7 +52,5 @@ func Download(filename string, u string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
-
 }

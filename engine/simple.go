@@ -1,10 +1,7 @@
 package engine
 
 import (
-	"fmt"
-	"time"
-
-	"maven-sync/downloader"
+	"maven-sync/fetcher"
 )
 
 type SimpleEngine struct{}
@@ -16,27 +13,28 @@ func (s SimpleEngine) Run(seeds ...Request) {
 	for _, r := range seeds {
 		requests = append(requests, r)
 	}
-	for {
-		for len(requests) > 0 {
-			r := requests[0]
-			requests = requests[1:]
 
-			parseResult, err := Work(r)
-			if err != nil {
+	for len(requests) > 0 {
+		// Pop first request
+		r := requests[0]
+		requests = requests[1:]
+
+		// Fetch data from url and parser
+		parseResult, err := Work(r)
+		if err != nil {
+			continue
+		}
+
+		// Add request
+		requests = append(requests, parseResult.Request...)
+
+		// Download file item
+		for _, item := range parseResult.Items {
+			if isDuplicate(item.Url) {
 				continue
 			}
-
-			requests = append(requests, parseResult.Request...)
-			for _, item := range parseResult.Items {
-				if isDuplicate(item.Url) {
-					continue
-				}
-
-				downloader.Download(item.Name, item.Url)
-			}
+			fetcher.Download(item.Name, item.Url)
 		}
-		fmt.Println("sleeping... you can shutdown me when all package download")
-		time.Sleep(time.Minute)
 	}
 }
 

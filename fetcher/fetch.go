@@ -6,14 +6,16 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	"maven-sync/config"
 )
 
 func Fetch(url string) ([]byte, error) {
-	<-config.RateLimiter
+	//<-config.RateLimiter
 	log.Printf("fetch url: %s", url)
-	resp, err := http.Get(url)
+
+	req, err := http.NewRequest("GET", url, nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Safari/537.36")
+	req.Header.Set("HOST", "repo.maven.apache.org")
+	resp, err := (&http.Client{}).Do(req)
 	if err != nil {
 		panic(err)
 	}

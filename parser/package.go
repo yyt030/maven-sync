@@ -29,9 +29,11 @@ func ParsePackage(contents []byte, url string) engine.ParseResult {
 			},
 		})
 
-		num++
-		if num >= config.LimitNum {
-			break
+		if config.LimitNum > 0 {
+			num++
+			if num >= config.LimitNum {
+				break
+			}
 		}
 	}
 
