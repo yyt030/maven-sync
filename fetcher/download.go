@@ -1,6 +1,7 @@
 package fetcher
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"log"
@@ -48,9 +49,12 @@ func Download(filename string, u string) error {
 	}
 
 	// Write the body to file
-	_, err = io.Copy(file, resp.Body)
+	writer := bufio.NewWriter(file)
+	_, err = io.Copy(writer, bufio.NewReader(resp.Body))
 	if err != nil {
 		return err
 	}
+	defer writer.Flush()
+
 	return nil
 }
