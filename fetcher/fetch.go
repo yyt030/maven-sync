@@ -17,7 +17,7 @@ func Fetch(url string) ([]byte, error) {
 	req.Header.Set("HOST", "repo.maven.apache.org")
 	resp, err := (&http.Client{}).Do(req)
 	if err != nil {
-		panic(err)
+		return nil, fmt.Errorf("fetch error: %v", err)
 	}
 	defer resp.Body.Close()
 
